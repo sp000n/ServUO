@@ -19,7 +19,7 @@ namespace Server.Items
             : base(itemID)
         {
             this.m_MinSkill = -25.0;
-            this.m_MaxSkill = +25.0;
+            this.m_MaxSkill = +80.0;
         }
 
         public TrainingDummy(Serial serial)
@@ -135,7 +135,7 @@ namespace Server.Items
 
             int version = reader.ReadInt();
 
-            switch ( version )
+            switch (version)
             {
                 case 0:
                     {
@@ -145,7 +145,7 @@ namespace Server.Items
                         if (this.m_MinSkill == 0.0 && this.m_MaxSkill == 30.0)
                         {
                             this.m_MinSkill = -25.0;
-                            this.m_MaxSkill = +25.0;
+                            this.m_MaxSkill = +80.0;
                         }
 
                         break;
