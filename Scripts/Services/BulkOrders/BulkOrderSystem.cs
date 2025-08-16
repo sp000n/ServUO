@@ -29,7 +29,7 @@ namespace Server.Engines.BulkOrders
     {
         // Logic (EA says 3 cached): 2 cached, 1 in the pipe if the last bod > 6 hours = 3
         public static readonly int MaxCachedDeeds = 2;
-        public static readonly int Delay = 6;
+        public static readonly int Delay = 1;
 
         public static bool NewSystemEnabled = Core.TOL;
         public static BulkOrderSystem Instance { get; set; }
@@ -262,7 +262,8 @@ namespace Server.Engines.BulkOrders
                     case BODType.Smith:
                         if (doLarge) return new LargeSmithBOD();
                         else return SmallSmithBOD.CreateRandomFor(pm);
-                    case BODType.Tailor: if (doLarge) return new LargeTailorBOD();
+                    case BODType.Tailor:
+                        if (doLarge) return new LargeTailorBOD();
                         else return SmallTailorBOD.CreateRandomFor(pm);
                     case BODType.Alchemy:
                         if (doLarge) return new LargeAlchemyBOD();
@@ -393,7 +394,7 @@ namespace Server.Engines.BulkOrders
                 case BODType.Carpentry: points = CarpentryRewardCalculator.Instance.ComputePoints(bod); break;
             }
 
-            banked = (double)points * 0.02;
+            banked = (double)points * 0.2;
         }
 
         public static void ComputePoints(LargeBOD bod, out int points, out double banked)
@@ -414,7 +415,7 @@ namespace Server.Engines.BulkOrders
                 case BODType.Carpentry: points = CarpentryRewardCalculator.Instance.ComputePoints(bod); break;
             }
 
-            banked = (double)points * .2;
+            banked = (double)points * .5;
         }
 
         public static void AddToPending(Mobile m, BODType type, int points)
@@ -507,7 +508,7 @@ namespace Server.Engines.BulkOrders
                 default: return true;
                 case BODType.Alchemy:
                 case BODType.Inscription: return false;
-                case BODType.Tinkering: 
+                case BODType.Tinkering:
                 case BODType.Cooking:
                 case BODType.Fletching:
                     return !IsInExceptionalExcludeList(bod);
@@ -542,9 +543,9 @@ namespace Server.Engines.BulkOrders
         {
             typeof(Arrow), typeof(Bolt), typeof(Kindling), typeof(Shaft),
 
-            typeof(EnchantedApple), typeof(TribalPaint), typeof(GrapesOfWrath), 
+            typeof(EnchantedApple), typeof(TribalPaint), typeof(GrapesOfWrath),
             typeof(EggBomb), typeof(CookedBird), typeof(FishSteak), typeof(FriedEggs),
-            typeof(LambLeg), typeof(Ribs), 
+            typeof(LambLeg), typeof(Ribs),
 
             typeof(Gears), typeof(Axle), typeof(Springs), typeof(AxleGears), typeof(ClockParts),
             typeof(Clock), typeof(PotionKeg), typeof(ClockFrame), typeof(MetalContainerEngraver)

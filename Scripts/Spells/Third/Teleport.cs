@@ -32,11 +32,11 @@ namespace Server.Spells.Third
                 this.Caster.SendLocalizedMessage(1061632); // You can't do that while carrying the sigil.
                 return false;
             }
-            else if (Server.Misc.WeightOverloading.IsOverloaded(this.Caster))
-            {
-                this.Caster.SendLocalizedMessage(502359, "", 0x22); // Thou art too encumbered to move.
-                return false;
-            }
+            //else if (Server.Misc.WeightOverloading.IsOverloaded(this.Caster))
+            //{
+            //this.Caster.SendLocalizedMessage(502359, "", 0x22); // Thou art too encumbered to move.
+            //return false;
+            //}
 
             return SpellHelper.CheckTravel(this.Caster, TravelCheckType.TeleportFrom);
         }
@@ -60,10 +60,10 @@ namespace Server.Spells.Third
             {
                 this.Caster.SendLocalizedMessage(1061632); // You can't do that while carrying the sigil.
             }
-            else if (Server.Misc.WeightOverloading.IsOverloaded(this.Caster))
-            {
-                this.Caster.SendLocalizedMessage(502359, "", 0x22); // Thou art too encumbered to move.
-            }
+            //else if (Server.Misc.WeightOverloading.IsOverloaded(this.Caster))
+            //{
+            //    this.Caster.SendLocalizedMessage(502359, "", 0x22); // Thou art too encumbered to move.
+            //}
             else if (!SpellHelper.CheckTravel(this.Caster, TravelCheckType.TeleportFrom))
             {
             }

@@ -67,6 +67,7 @@ namespace Server.Mobiles
         {
             AddLoot(LootPack.Meager);
             PackItem(Loot.RandomWeapon());
+            PackItem(Loot.RandomScroll(0, 32, Server.Items.SpellbookType.Regular));
         }
 
         public override void Serialize(GenericWriter writer)

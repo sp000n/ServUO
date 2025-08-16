@@ -7,7 +7,7 @@ namespace Server.Items
         TextDefinition ICommodity.Description { get { return LabelNumber; } }
         bool ICommodity.IsDeedable { get { return true; } }
 		
-		public override double DefaultWeight { get { return 0.1; } }
+		public override double DefaultWeight { get { return 0.02; } } // changed from default of one tenth
 		
         [Constructable]
         public Bolt()

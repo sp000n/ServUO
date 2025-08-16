@@ -136,7 +136,7 @@ namespace Server.Items
                     {
                         this.m_MinSkill = reader.ReadDouble();
                         this.m_MaxSkill = reader.ReadDouble();
-                        this.m_MaxSkill = +80.0;
+                        MaxSkill = +80.0;
 
                         if (this.m_MinSkill == 0.0 && this.m_MaxSkill == 30.0)
                         {

@@ -175,75 +175,75 @@ namespace Server.Misc
 			return CheckSkill(from, skill, new Point2D(from.Location.X / LocationSize, from.Location.Y / LocationSize), chance);
 		}
 
-        #region Craft All Gains
-        /// <summary>
-        /// This should be a successful skill check, where a system can register several skill gains at once. Only system
-        /// using this currently is UseAllRes for CraftItem.cs
-        /// </summary>
-        /// <param name="from"></param>
-        /// <param name="skill"></param>
-        /// <param name="amount"></param>
-        /// <returns></returns>
-        public static bool CheckSkill(Mobile from, SkillName sk, double minSkill, double maxSkill, int amount)
-        {
-            if (from.Skills.Cap == 0)
-                return false;
-
-            var skill = from.Skills[sk];
-            var value = skill.Value;
-            var gains = 0;
-
-            for (int i = 0; i < amount; i++)
-            {
-                var gc = GetGainChance(from, skill, (value - minSkill) / (maxSkill - minSkill), value) / 10;
-
-                if (AllowGain(from, skill, new Point2D(from.Location.X / LocationSize, from.Location.Y / LocationSize)))
-                {
-                    if (from.Alive && (skill.Base < 10.0 || Utility.RandomDouble() <= gc || CheckGGS(from, skill)))
-                    {
-                        gains++;
-                        value += 0.1;
-                    }
-                }
-
-            }
-
-            if (gains > 0)
-            {
-                Gain(from, skill, gains);
-                EventSink.InvokeSkillCheck(new SkillCheckEventArgs(from, skill, true));
-                return true;
-            }
-
-            return false;
-        }
-
-        private static double GetGainChance(Mobile from, Skill skill, double gains, double chance)
-        {
-            var gc = (double)(from.Skills.Cap - (from.Skills.Total + (gains * 10))) / from.Skills.Cap;
-
-            gc += (skill.Cap - (skill.Base + (gains * 10))) / skill.Cap;
-            gc /= 4;
-
-            gc *= skill.Info.GainFactor;
-
-            if (gc < 0.01)
-                gc = 0.01;
-
-            if (gc > 1.00)
-                gc = 1.00;
-
-            return gc;
-        }
-        #endregion
-
-        public static bool CheckSkill(Mobile from, Skill skill, object obj, double chance)
+		#region Craft All Gains
+		/// <summary>
+		/// This should be a successful skill check, where a system can register several skill gains at once. Only system
+		/// using this currently is UseAllRes for CraftItem.cs
+		/// </summary>
+		/// <param name="from"></param>
+		/// <param name="skill"></param>
+		/// <param name="amount"></param>
+		/// <returns></returns>
+		public static bool CheckSkill(Mobile from, SkillName sk, double minSkill, double maxSkill, int amount)
 		{
 			if (from.Skills.Cap == 0)
 				return false;
 
-            var success = Utility.Random(100) <= (int)(chance * 100);
-            var gc = GetGainChance(from, skill, chance, success);
+			var skill = from.Skills[sk];
+			var value = skill.Value;
+			var gains = 0;
+
+			for (int i = 0; i < amount; i++)
+			{
+				var gc = GetGainChance(from, skill, (value - minSkill) / (maxSkill - minSkill), value) / 10;
+
+				if (AllowGain(from, skill, new Point2D(from.Location.X / LocationSize, from.Location.Y / LocationSize)))
+				{
+					if (from.Alive && (skill.Base < 10.0 || Utility.RandomDouble() <= gc || CheckGGS(from, skill)))
+					{
+						gains++;
+						value += 0.1;
+					}
+				}
+
+			}
+
+			if (gains > 0)
+			{
+				Gain(from, skill, gains);
+				EventSink.InvokeSkillCheck(new SkillCheckEventArgs(from, skill, true));
+				return true;
+			}
+
+			return false;
+		}
+
+		private static double GetGainChance(Mobile from, Skill skill, double gains, double chance)
+		{
+			//var gc = (double)(from.Skills.Cap - (from.Skills.Total + (gains * 10))) / from.Skills.Cap;
+			var gc = (double)1;
+			gc = (skill.Cap - (skill.Base + (gains * 10))) / skill.Cap;
+			gc /= 2;
+
+			gc *= skill.Info.GainFactor;
+
+			if (gc < 0.01)
+				gc = 0.01;
+
+			if (gc > 1.00)
+				gc = 1.00;
+
+			return gc;
+		}
+		#endregion
+
+		public static bool CheckSkill(Mobile from, Skill skill, object obj, double chance)
+		{
+			if (from.Skills.Cap == 0)
+				return false;
+
+			var success = Utility.Random(100) <= (int)(chance * 100);
+			var gc = GetGainChance(from, skill, chance, success);
 
 			if (AllowGain(from, skill, obj))
 			{
@@ -253,35 +253,35 @@ namespace Server.Misc
 				}
 			}
 
-            EventSink.InvokeSkillCheck(new SkillCheckEventArgs(from, skill, success));
+			EventSink.InvokeSkillCheck(new SkillCheckEventArgs(from, skill, success));
 
-            return success;
+			return success;
 		}
 
-        private static double GetGainChance(Mobile from, Skill skill, double chance, bool success)
-        {
-            var gc = (double)(from.Skills.Cap - from.Skills.Total) / from.Skills.Cap;
+		private static double GetGainChance(Mobile from, Skill skill, double chance, bool success)
+		{
+			//var gc = (double)(from.Skills.Cap - (from.Skills.Total + (gains * 10))) / from.Skills.Cap;
+			var gc = (double)1;
+			gc += (skill.Cap - skill.Base) / skill.Cap;
+			gc /= 2;
 
-            gc += (skill.Cap - skill.Base) / skill.Cap;
-            gc /= 2;
+			gc += (1.0 - chance) * (success ? 0.5 : (Core.AOS ? 0.0 : 0.2));
+			gc /= 2;
 
-            gc += (1.0 - chance) * (success ? 0.5 : (Core.AOS ? 0.0 : 0.2));
-            gc /= 2;
+			gc *= skill.Info.GainFactor;
 
-            gc *= skill.Info.GainFactor;
+			if (gc < 0.01)
+				gc = 0.01;
 
-            if (gc < 0.01)
-                gc = 0.01;
+			// Pets get a 100% bonus
+			if (from is BaseCreature && ((BaseCreature)from).Controlled)
+				gc += gc * 1.00;
 
-            // Pets get a 100% bonus
-            if (from is BaseCreature && ((BaseCreature)from).Controlled)
-                gc += gc * 1.00;
+			if (gc > 1.00)
+				gc = 1.00;
 
-            if (gc > 1.00)
-                gc = 1.00;
-
-            return gc;
-        }
+			return gc;
+		}
 
 		public static bool Mobile_SkillCheckTarget(
 			Mobile from,
@@ -356,12 +356,12 @@ namespace Server.Misc
 			Int
 		}
 
-        public static void Gain(Mobile from, Skill skill)
-        {
-            Gain(from, skill, (int)(from.Region.SkillGain(from) * 10));
-        }
+		public static void Gain(Mobile from, Skill skill)
+		{
+			Gain(from, skill, (int)(from.Region.SkillGain(from) * 10));
+		}
 
-        public static void Gain(Mobile from, Skill skill, int toGain)
+		public static void Gain(Mobile from, Skill skill, int toGain)
 		{
 			if (from.Region.IsPartOf<Jail>())
 				return;
@@ -501,14 +501,14 @@ namespace Server.Misc
 			// Chance roll
 			double chance;
 
-            if (from is BaseCreature && ((BaseCreature)from).Controlled)
-            {
-                chance = _PetChanceToGainStats / 100.0;
-            }
-            else
-            {
-                chance = _PlayerChanceToGainStats / 100.0;
-            }
+			if (from is BaseCreature && ((BaseCreature)from).Controlled)
+			{
+				chance = _PetChanceToGainStats / 100.0;
+			}
+			else
+			{
+				chance = _PlayerChanceToGainStats / 100.0;
+			}
 
 			if (Utility.RandomDouble() >= chance)
 			{
@@ -583,137 +583,137 @@ namespace Server.Misc
 			switch (stat)
 			{
 				case Stat.Str:
-                    if (from.RawStr < from.StrCap)
-                    {
-                        if (atTotalCap && from is PlayerMobile)
-                        {
-                            return CanLower(from, Stat.Dex) || CanLower(from, Stat.Int); 
-                        }
-                        else
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
+					if (from.RawStr < from.StrCap)
+					{
+						if (atTotalCap && from is PlayerMobile)
+						{
+							return CanLower(from, Stat.Dex) || CanLower(from, Stat.Int);
+						}
+						else
+						{
+							return true;
+						}
+					}
+					return false;
 				case Stat.Dex:
 					if (from.RawDex < from.DexCap)
-                    {
-                        if (atTotalCap && from is PlayerMobile)
-                        {
-                            return CanLower(from, Stat.Str) || CanLower(from, Stat.Int);
-                        }
-                        else
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
+					{
+						if (atTotalCap && from is PlayerMobile)
+						{
+							return CanLower(from, Stat.Str) || CanLower(from, Stat.Int);
+						}
+						else
+						{
+							return true;
+						}
+					}
+					return false;
 				case Stat.Int:
 					if (from.RawInt < from.IntCap)
-                    {
-                        if (atTotalCap && from is PlayerMobile)
-                        {
-                            return CanLower(from, Stat.Str) || CanLower(from, Stat.Dex);
-                        }
-                        else
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
+					{
+						if (atTotalCap && from is PlayerMobile)
+						{
+							return CanLower(from, Stat.Str) || CanLower(from, Stat.Dex);
+						}
+						else
+						{
+							return true;
+						}
+					}
+					return false;
 			}
 
 			return false;
 		}
 
-        public static void IncreaseStat(Mobile from, Stat stat)
-        {
-            bool atTotalCap = from.RawStatTotal >= from.StatCap;
+		public static void IncreaseStat(Mobile from, Stat stat)
+		{
+			bool atTotalCap = from.RawStatTotal >= from.StatCap;
 
-            switch (stat)
-            {
-                case Stat.Str:
-				{
-                    if (CanRaise(from, Stat.Str, atTotalCap))
-                    {
-                        if (atTotalCap)
-                        {
-                            if (CanLower(from, Stat.Dex) && (from.RawDex < from.RawInt || !CanLower(from, Stat.Int)))
-                                --from.RawDex;
-                            else if (CanLower(from, Stat.Int))
-                                --from.RawInt;
-                        }
+			switch (stat)
+			{
+				case Stat.Str:
+					{
+						if (CanRaise(from, Stat.Str, atTotalCap))
+						{
+							if (atTotalCap)
+							{
+								if (CanLower(from, Stat.Dex) && (from.RawDex < from.RawInt || !CanLower(from, Stat.Int)))
+									--from.RawDex;
+								else if (CanLower(from, Stat.Int))
+									--from.RawInt;
+							}
 
-                        ++from.RawStr;
+							++from.RawStr;
 
-                        if (from is BaseCreature && ((BaseCreature)from).HitsMaxSeed > -1 && ((BaseCreature)from).HitsMaxSeed < from.StrCap)
-                        {
-                            ((BaseCreature)from).HitsMaxSeed++;
-                        }
+							if (from is BaseCreature && ((BaseCreature)from).HitsMaxSeed > -1 && ((BaseCreature)from).HitsMaxSeed < from.StrCap)
+							{
+								((BaseCreature)from).HitsMaxSeed++;
+							}
 
-                        if (Siege.SiegeShard && from is PlayerMobile)
-                        {
-                            Siege.IncreaseStat((PlayerMobile)from);
-                        }
-                    }
+							if (Siege.SiegeShard && from is PlayerMobile)
+							{
+								Siege.IncreaseStat((PlayerMobile)from);
+							}
+						}
 
-                    break;
-				}
-                case Stat.Dex:
-				{
-                    if (CanRaise(from, Stat.Dex, atTotalCap))
-                    {
-                        if (atTotalCap)
-                        {
-                            if (CanLower(from, Stat.Str) && (from.RawStr < from.RawInt || !CanLower(from, Stat.Int)))
-                                --from.RawStr;
-                            else if (CanLower(from, Stat.Int))
-                                --from.RawInt;
-                        }
+						break;
+					}
+				case Stat.Dex:
+					{
+						if (CanRaise(from, Stat.Dex, atTotalCap))
+						{
+							if (atTotalCap)
+							{
+								if (CanLower(from, Stat.Str) && (from.RawStr < from.RawInt || !CanLower(from, Stat.Int)))
+									--from.RawStr;
+								else if (CanLower(from, Stat.Int))
+									--from.RawInt;
+							}
 
-                        ++from.RawDex;
+							++from.RawDex;
 
-                        if (from is BaseCreature && ((BaseCreature)from).StamMaxSeed > -1 && ((BaseCreature)from).StamMaxSeed < from.DexCap)
-                        {
-                            ((BaseCreature)from).StamMaxSeed++;
-                        }
+							if (from is BaseCreature && ((BaseCreature)from).StamMaxSeed > -1 && ((BaseCreature)from).StamMaxSeed < from.DexCap)
+							{
+								((BaseCreature)from).StamMaxSeed++;
+							}
 
-                        if (Siege.SiegeShard && from is PlayerMobile)
-                        {
-                            Siege.IncreaseStat((PlayerMobile)from);
-                        }
-                    }
+							if (Siege.SiegeShard && from is PlayerMobile)
+							{
+								Siege.IncreaseStat((PlayerMobile)from);
+							}
+						}
 
-                    break;
-				}
-                case Stat.Int:
-				{
-                    if (CanRaise(from, Stat.Int, atTotalCap))
-                    {
-                        if (atTotalCap)
-                        {
-                            if (CanLower(from, Stat.Str) && (from.RawStr < from.RawDex || !CanLower(from, Stat.Dex)))
-                                --from.RawStr;
-                            else if (CanLower(from, Stat.Dex))
-                                --from.RawDex;
-                        }
+						break;
+					}
+				case Stat.Int:
+					{
+						if (CanRaise(from, Stat.Int, atTotalCap))
+						{
+							if (atTotalCap)
+							{
+								if (CanLower(from, Stat.Str) && (from.RawStr < from.RawDex || !CanLower(from, Stat.Dex)))
+									--from.RawStr;
+								else if (CanLower(from, Stat.Dex))
+									--from.RawDex;
+							}
 
-                        ++from.RawInt;
+							++from.RawInt;
 
-                        if (from is BaseCreature && ((BaseCreature)from).ManaMaxSeed > -1 && ((BaseCreature)from).ManaMaxSeed < from.IntCap)
-                        {
-                            ((BaseCreature)from).ManaMaxSeed++;
-                        }
+							if (from is BaseCreature && ((BaseCreature)from).ManaMaxSeed > -1 && ((BaseCreature)from).ManaMaxSeed < from.IntCap)
+							{
+								((BaseCreature)from).ManaMaxSeed++;
+							}
 
-                        if (Siege.SiegeShard && from is PlayerMobile)
-                        {
-                            Siege.IncreaseStat((PlayerMobile)from);
-                        }
-                    }
+							if (Siege.SiegeShard && from is PlayerMobile)
+							{
+								Siege.IncreaseStat((PlayerMobile)from);
+							}
+						}
 
-                    break;
-	            }
-	        }
+						break;
+					}
+			}
 		}
 
 		public static void GainStat(Mobile from, Stat stat)
@@ -729,44 +729,44 @@ namespace Server.Misc
 			switch (stat)
 			{
 				case Stat.Str:
-				{
-					if (from is BaseCreature && ((BaseCreature)from).Controlled)
 					{
-						if ((from.LastStrGain + _PetStatGainDelay) >= DateTime.UtcNow)
+						if (from is BaseCreature && ((BaseCreature)from).Controlled)
+						{
+							if ((from.LastStrGain + _PetStatGainDelay) >= DateTime.UtcNow)
+								return false;
+						}
+						else if ((from.LastStrGain + _StatGainDelay) >= DateTime.UtcNow)
 							return false;
-					}
-					else if ((from.LastStrGain + _StatGainDelay) >= DateTime.UtcNow)
-						return false;
 
-					from.LastStrGain = DateTime.UtcNow;
-					break;
-				}
+						from.LastStrGain = DateTime.UtcNow;
+						break;
+					}
 				case Stat.Dex:
-				{
-					if (from is BaseCreature && ((BaseCreature)from).Controlled)
 					{
-						if ((from.LastDexGain + _PetStatGainDelay) >= DateTime.UtcNow)
+						if (from is BaseCreature && ((BaseCreature)from).Controlled)
+						{
+							if ((from.LastDexGain + _PetStatGainDelay) >= DateTime.UtcNow)
+								return false;
+						}
+						else if ((from.LastDexGain + _StatGainDelay) >= DateTime.UtcNow)
 							return false;
-					}
-					else if ((from.LastDexGain + _StatGainDelay) >= DateTime.UtcNow)
-						return false;
 
-					from.LastDexGain = DateTime.UtcNow;
-					break;
-				}
+						from.LastDexGain = DateTime.UtcNow;
+						break;
+					}
 				case Stat.Int:
-				{
-					if (from is BaseCreature && ((BaseCreature)from).Controlled)
 					{
-						if ((from.LastIntGain + _PetStatGainDelay) >= DateTime.UtcNow)
+						if (from is BaseCreature && ((BaseCreature)from).Controlled)
+						{
+							if ((from.LastIntGain + _PetStatGainDelay) >= DateTime.UtcNow)
+								return false;
+						}
+						else if ((from.LastIntGain + _StatGainDelay) >= DateTime.UtcNow)
 							return false;
-					}
-					else if ((from.LastIntGain + _StatGainDelay) >= DateTime.UtcNow)
-						return false;
 
-					from.LastIntGain = DateTime.UtcNow;
-					break;
-				}
+						from.LastIntGain = DateTime.UtcNow;
+						break;
+					}
 			}
 			return true;
 		}

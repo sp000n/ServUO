@@ -316,7 +316,7 @@ namespace Server.Items
                         m_MaxSkill = reader.ReadDouble();
                         m_Arrows = reader.ReadInt();
                         m_Bolts = reader.ReadInt();
-                        this.m_MaxSkill = +80.0;
+                        MaxSkill = +80.0;
 
                         if (m_MinSkill == 0.0 && m_MaxSkill == 30.0)
                         {

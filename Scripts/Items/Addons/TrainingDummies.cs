@@ -122,7 +122,6 @@ namespace Server.Items
         public override void Serialize(GenericWriter writer)
         {
             base.Serialize(writer);
-
             writer.Write((int)0);
 
             writer.Write(this.m_MinSkill);
@@ -141,12 +140,13 @@ namespace Server.Items
                     {
                         this.m_MinSkill = reader.ReadDouble();
                         this.m_MaxSkill = reader.ReadDouble();
-                        this.m_MaxSkill = +80.0;
+
+                        this.m_MaxSkill = 80.0;
 
                         if (this.m_MinSkill == 0.0 && this.m_MaxSkill == 30.0)
                         {
                             this.m_MinSkill = -25.0;
-                            this.m_MaxSkill = +80.0;
+                            this.m_MaxSkill = +25.0;
                         }
 
                         break;

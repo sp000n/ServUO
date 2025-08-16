@@ -423,7 +423,14 @@ namespace Server.Items
 
         private Timer m_DecayTimer;
         private DateTime m_DecayTime;
-
+        private TimeSpan GetDecayTime()
+        {
+            if (m_Owner is PlayerMobile) // Check if corpse is a player's
+            {
+                return TimeSpan.FromMinutes(180.0); // three hours for player corpse
+            }
+            return m_DefaultDecayTime; // Default for non-player corpses
+        }
         public void BeginDecay(TimeSpan delay)
         {
             if (m_DecayTimer != null)
@@ -694,7 +701,7 @@ namespace Server.Items
                 }
             }
 
-            BeginDecay(m_DefaultDecayTime);
+            BeginDecay(GetDecayTime());
 
             DevourCorpse();
 

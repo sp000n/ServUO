@@ -10,7 +10,6 @@
 @ECHO: Compile %EXENAME% for Windows
 @ECHO:
 
-@PAUSE
 
 dotnet build -c Debug
 
@@ -18,7 +17,6 @@ dotnet build -c Debug
 @ECHO: Done!
 @ECHO:
 
-@PAUSE
 
 @CLS
 

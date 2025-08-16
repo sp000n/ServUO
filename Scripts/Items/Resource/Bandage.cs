@@ -13,265 +13,265 @@ using Server.Services.Virtues;
 
 namespace Server.Items
 {
-	public class Bandage : Item, IDyable, ICommodity
+    public class Bandage : Item, IDyable, ICommodity
     {
         public static void Initialize()
         {
             EventSink.BandageTargetRequest += BandageTargetRequest;
         }
 
-		public static int Range = (Core.AOS ? 2 : 1);
+        public static int Range = (Core.AOS ? 6 : 1);
 
-		public override double DefaultWeight { get { return 0.1; } }
+        public override double DefaultWeight { get { return 0.02; } }
 
-		[Constructable]
-		public Bandage()
-			: this(1)
-		{ }
+        [Constructable]
+        public Bandage()
+            : this(1)
+        { }
 
-		[Constructable]
-		public Bandage(int amount)
-			: base(0xE21)
-		{
-			Stackable = true;
-			Amount = amount;
-		}
+        [Constructable]
+        public Bandage(int amount)
+            : base(0xE21)
+        {
+            Stackable = true;
+            Amount = amount;
+        }
 
-		public Bandage(Serial serial)
-			: base(serial)
-		{ }
+        public Bandage(Serial serial)
+            : base(serial)
+        { }
 
         TextDefinition ICommodity.Description { get { return LabelNumber; } }
         bool ICommodity.IsDeedable { get { return true; } }
 
         public virtual bool Dye(Mobile from, DyeTub sender)
-		{
-			if (Deleted)
-			{
-				return false;
-			}
+        {
+            if (Deleted)
+            {
+                return false;
+            }
 
-			Hue = sender.DyedHue;
+            Hue = sender.DyedHue;
 
-			return true;
-		}
+            return true;
+        }
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+        public override void Serialize(GenericWriter writer)
+        {
+            base.Serialize(writer);
 
-			writer.Write(0); // version
-		}
+            writer.Write(0); // version
+        }
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+        public override void Deserialize(GenericReader reader)
+        {
+            base.Deserialize(reader);
 
-			int version = reader.ReadInt();
-		}
+            int version = reader.ReadInt();
+        }
 
-		public override void OnDoubleClick(Mobile from)
-		{
-			if (from.InRange(GetWorldLocation(), Range))
-			{
-				from.RevealingAction();
+        public override void OnDoubleClick(Mobile from)
+        {
+            if (from.InRange(GetWorldLocation(), Range))
+            {
+                from.RevealingAction();
 
-				from.SendLocalizedMessage(500948); // Who will you use the bandages on?
+                from.SendLocalizedMessage(500948); // Who will you use the bandages on?
 
-				from.Target = new InternalTarget(this);
-			}
-			else
-			{
-				from.SendLocalizedMessage(500295); // You are too far away to do that.
-			}
-		}
+                from.Target = new InternalTarget(this);
+            }
+            else
+            {
+                from.SendLocalizedMessage(500295); // You are too far away to do that.
+            }
+        }
 
         public static void BandageTargetRequest(BandageTargetRequestEventArgs e)
-		{
-			BandageTargetRequest(e.Bandage as Bandage, e.Mobile, e.Target);
-		}
+        {
+            BandageTargetRequest(e.Bandage as Bandage, e.Mobile, e.Target);
+        }
 
         public static void BandageTargetRequest(Bandage bandage, Mobile from, Mobile target)
-		{
+        {
             if (bandage == null || bandage.Deleted)
                 return;
 
             if (from.InRange(bandage.GetWorldLocation(), Range))
-			{
-				Target t = from.Target;
+            {
+                Target t = from.Target;
 
-				if (t != null)
-				{
-					Target.Cancel(from);
-					from.Target = null;
-				}
+                if (t != null)
+                {
+                    Target.Cancel(from);
+                    from.Target = null;
+                }
 
-				from.RevealingAction();
-				from.SendLocalizedMessage(500948); // Who will you use the bandages on?
+                from.RevealingAction();
+                from.SendLocalizedMessage(500948); // Who will you use the bandages on?
 
                 new InternalTarget(bandage).Invoke(from, target);
-			}
-			else
-			{
-				from.SendLocalizedMessage(500295); // You are too far away to do that.
-			}
-		}
+            }
+            else
+            {
+                from.SendLocalizedMessage(500295); // You are too far away to do that.
+            }
+        }
 
-		private class InternalTarget : Target
-		{
-			private readonly Bandage m_Bandage;
+        private class InternalTarget : Target
+        {
+            private readonly Bandage m_Bandage;
 
-			public InternalTarget(Bandage bandage)
-				: base(Bandage.Range, false, TargetFlags.Beneficial)
-			{
-				m_Bandage = bandage;
-			}
+            public InternalTarget(Bandage bandage)
+                : base(Bandage.Range, false, TargetFlags.Beneficial)
+            {
+                m_Bandage = bandage;
+            }
 
-			protected override void OnTarget(Mobile from, object targeted)
-			{
-				if (m_Bandage.Deleted)
-				{
-					return;
-				}
+            protected override void OnTarget(Mobile from, object targeted)
+            {
+                if (m_Bandage.Deleted)
+                {
+                    return;
+                }
 
-				if (targeted is Mobile)
-				{
-					if (from.InRange(m_Bandage.GetWorldLocation(), Bandage.Range))
-					{
-						if (BandageContext.BeginHeal(from, (Mobile)targeted, m_Bandage is EnhancedBandage) != null)
-						{
+                if (targeted is Mobile)
+                {
+                    if (from.InRange(m_Bandage.GetWorldLocation(), Bandage.Range))
+                    {
+                        if (BandageContext.BeginHeal(from, (Mobile)targeted, m_Bandage is EnhancedBandage) != null)
+                        {
                             NegativeAttributes.OnCombatAction(from);
-							m_Bandage.Consume();
-						}
-					}
-					else
-					{
-						from.SendLocalizedMessage(500295); // You are too far away to do that.
-					}
-				}
-				else if (targeted is PlagueBeastInnard)
-				{
-					if (((PlagueBeastInnard)targeted).OnBandage(from))
-					{
+                            m_Bandage.Consume();
+                        }
+                    }
+                    else
+                    {
+                        from.SendLocalizedMessage(500295); // You are too far away to do that.
+                    }
+                }
+                else if (targeted is PlagueBeastInnard)
+                {
+                    if (((PlagueBeastInnard)targeted).OnBandage(from))
+                    {
                         NegativeAttributes.OnCombatAction(from);
-						m_Bandage.Consume();
-					}
-				}
-				else
-				{
-					from.SendLocalizedMessage(500970); // Bandages can not be used on that.
-				}
-			}
+                        m_Bandage.Consume();
+                    }
+                }
+                else
+                {
+                    from.SendLocalizedMessage(500970); // Bandages can not be used on that.
+                }
+            }
 
-			protected override void OnNonlocalTarget(Mobile from, object targeted)
-			{
-				if (targeted is PlagueBeastInnard)
-				{
-					if (((PlagueBeastInnard)targeted).OnBandage(from))
-					{
-						m_Bandage.Consume();
-					}
-				}
-				else
-				{
-					base.OnNonlocalTarget(from, targeted);
-				}
-			}
-		}
-	}
+            protected override void OnNonlocalTarget(Mobile from, object targeted)
+            {
+                if (targeted is PlagueBeastInnard)
+                {
+                    if (((PlagueBeastInnard)targeted).OnBandage(from))
+                    {
+                        m_Bandage.Consume();
+                    }
+                }
+                else
+                {
+                    base.OnNonlocalTarget(from, targeted);
+                }
+            }
+        }
+    }
 
-	public class BandageContext
-	{
-		private readonly Mobile m_Healer;
-		private readonly Mobile m_Patient;
-		private int m_Slips;
+    public class BandageContext
+    {
+        private readonly Mobile m_Healer;
+        private readonly Mobile m_Patient;
+        private int m_Slips;
         private int m_HealedPoisonOrBleed;
-		private Timer m_Timer;
+        private Timer m_Timer;
         private int m_HealingBonus;
 
-		public Mobile Healer { get { return m_Healer; } }
-		public Mobile Patient { get { return m_Patient; } }
-		public int Slips { get { return m_Slips; } set { m_Slips = value; } }
+        public Mobile Healer { get { return m_Healer; } }
+        public Mobile Patient { get { return m_Patient; } }
+        public int Slips { get { return m_Slips; } set { m_Slips = value; } }
         public int HealedPoisonOrBleed { get { return m_HealedPoisonOrBleed; } set { m_HealedPoisonOrBleed = value; } }
-		public Timer Timer { get { return m_Timer; } }
+        public Timer Timer { get { return m_Timer; } }
         public int HealingBonus { get { return m_HealingBonus; } }
 
-		public void Slip()
-		{
-			m_Healer.SendLocalizedMessage(500961); // Your fingers slip!
-			++m_Slips;
-		}
+        public void Slip()
+        {
+            m_Healer.SendLocalizedMessage(500961); // Your fingers slip!
+            ++m_Slips;
+        }
 
-		public BandageContext(Mobile healer, Mobile patient, TimeSpan delay)
-			: this(healer, patient, delay, false)
-		{ }
+        public BandageContext(Mobile healer, Mobile patient, TimeSpan delay)
+            : this(healer, patient, delay, false)
+        { }
 
-		public BandageContext(Mobile healer, Mobile patient, TimeSpan delay, bool enhanced)
-		{
-			m_Healer = healer;
-			m_Patient = patient;
+        public BandageContext(Mobile healer, Mobile patient, TimeSpan delay, bool enhanced)
+        {
+            m_Healer = healer;
+            m_Patient = patient;
 
             if (enhanced)
                 m_HealingBonus += EnhancedBandage.HealingBonus;
 
-			m_Timer = new InternalTimer(this, delay);
-			m_Timer.Start();
-		}
+            m_Timer = new InternalTimer(this, delay);
+            m_Timer.Start();
+        }
 
-		public void StopHeal()
-		{
-			m_Table.Remove(m_Healer);
+        public void StopHeal()
+        {
+            m_Table.Remove(m_Healer);
 
-			if (m_Timer != null)
-			{
-				m_Timer.Stop();
-			}
+            if (m_Timer != null)
+            {
+                m_Timer.Stop();
+            }
 
-			m_Timer = null;
-		}
+            m_Timer = null;
+        }
 
-		private static readonly Dictionary<Mobile, BandageContext> m_Table = new Dictionary<Mobile, BandageContext>();
+        private static readonly Dictionary<Mobile, BandageContext> m_Table = new Dictionary<Mobile, BandageContext>();
 
-		public static BandageContext GetContext(Mobile healer)
-		{
-			BandageContext bc = null;
-			m_Table.TryGetValue(healer, out bc);
-			return bc;
-		}
+        public static BandageContext GetContext(Mobile healer)
+        {
+            BandageContext bc = null;
+            m_Table.TryGetValue(healer, out bc);
+            return bc;
+        }
 
-		public static SkillName GetPrimarySkill(Mobile healer, Mobile m)
-		{
+        public static SkillName GetPrimarySkill(Mobile healer, Mobile m)
+        {
             if (m is DespiseCreature)
             {
                 return healer.Skills[SkillName.Healing].Value > healer.Skills[SkillName.Veterinary].Value ? SkillName.Healing : SkillName.Veterinary;
             }
 
-			if (!m.Player && (m.Body.IsMonster || m.Body.IsAnimal))
-			{
-				return SkillName.Veterinary;
-			}
-			else
-			{
-				return SkillName.Healing;
-			}
-		}
+            if (!m.Player && (m.Body.IsMonster || m.Body.IsAnimal))
+            {
+                return SkillName.Veterinary;
+            }
+            else
+            {
+                return SkillName.Healing;
+            }
+        }
 
         public static SkillName GetSecondarySkill(Mobile healer, Mobile m)
-		{
+        {
             if (m is DespiseCreature)
             {
                 return healer.Skills[SkillName.Healing].Value > healer.Skills[SkillName.Veterinary].Value ? SkillName.Anatomy : SkillName.AnimalLore;
             }
 
-			if (!m.Player && (m.Body.IsMonster || m.Body.IsAnimal))
-			{
-				return SkillName.AnimalLore;
-			}
-			else
-			{
-				return SkillName.Anatomy;
-			}
-		}
+            if (!m.Player && (m.Body.IsMonster || m.Body.IsAnimal))
+            {
+                return SkillName.AnimalLore;
+            }
+            else
+            {
+                return SkillName.Anatomy;
+            }
+        }
 
         public void CheckPoisonOrBleed()
         {
@@ -597,9 +597,9 @@ namespace Server.Items
                 BuffInfo.RemoveBuff(m_Healer, BuffIcon.Veterinary);
         }
 
-		private class InternalTimer : Timer
-		{
-			private BandageContext m_Context;
+        private class InternalTimer : Timer
+        {
+            private BandageContext m_Context;
             private long m_Begin;
             private long m_Expires;
             private bool m_CheckedHealAndBleed;
@@ -608,25 +608,25 @@ namespace Server.Items
             {
                 get
                 {
-                    return Core.SA && 
+                    return Core.SA &&
                            m_Context != null && m_Context.Healer == m_Context.Patient &&
                            m_Context.Healer.Skills[SkillName.Healing].Value >= 80 &&
                            m_Context.Healer.Skills[SkillName.Anatomy].Value >= 80;
                 }
             }
 
-			public InternalTimer(BandageContext context, TimeSpan delay)
-				: base(TimeSpan.FromMilliseconds(250), TimeSpan.FromMilliseconds(250))
-			{
-				m_Context = context;
-				Priority = TimerPriority.FiftyMS;
+            public InternalTimer(BandageContext context, TimeSpan delay)
+                : base(TimeSpan.FromMilliseconds(250), TimeSpan.FromMilliseconds(250))
+            {
+                m_Context = context;
+                Priority = TimerPriority.FiftyMS;
 
                 m_Begin = Core.TickCount;
                 m_Expires = Core.TickCount + (int)delay.TotalMilliseconds;
-			}
+            }
 
-			protected override void OnTick()
-			{
+            protected override void OnTick()
+            {
                 if (Core.TickCount >= m_Expires)
                 {
                     m_Context.EndHeal();
@@ -637,13 +637,13 @@ namespace Server.Items
                     m_Context.CheckPoisonOrBleed();
                     m_CheckedHealAndBleed = true;
                 }
-			}
-		}
+            }
+        }
 
-		public static BandageContext BeginHeal(Mobile healer, Mobile patient)
-		{
-			return BeginHeal(healer, patient, false);
-		}
+        public static BandageContext BeginHeal(Mobile healer, Mobile patient)
+        {
+            return BeginHeal(healer, patient, false);
+        }
 
         public static BandageContext BeginHeal(Mobile healer, Mobile patient, bool enhanced)
         {
@@ -676,7 +676,7 @@ namespace Server.Items
                     context.StopHeal();
                 }
 
-				var delay = GetDelay(healer, patient);
+                var delay = GetDelay(healer, patient);
 
                 if (patient is PlayerMobile)
                     BuffInfo.AddBuff(healer, new BuffInfo(BuffIcon.Healing, 1002082, 1151400, delay, healer, String.Format("{0}", patient.Name)));
@@ -705,25 +705,25 @@ namespace Server.Items
             return null;
         }
 
-		public static TimeSpan GetDelay(Mobile healer, Mobile patient)
-		{
-			return GetDelay(healer, patient, !patient.Alive || patient.IsDeadBondedPet);
-		}
+        public static TimeSpan GetDelay(Mobile healer, Mobile patient)
+        {
+            return GetDelay(healer, patient, !patient.Alive || patient.IsDeadBondedPet);
+        }
 
-		public static TimeSpan GetDelay(Mobile healer, Mobile patient, bool dead)
-		{
-			return GetDelay(healer, patient, dead, GetPrimarySkill(healer, patient));
-		}
+        public static TimeSpan GetDelay(Mobile healer, Mobile patient, bool dead)
+        {
+            return GetDelay(healer, patient, dead, GetPrimarySkill(healer, patient));
+        }
 
-		public static TimeSpan GetDelay(Mobile healer, Mobile patient, bool dead, SkillName skill)
-		{
-			var resDelay = dead ? 5.0 : 0.0;
+        public static TimeSpan GetDelay(Mobile healer, Mobile patient, bool dead, SkillName skill)
+        {
+            var resDelay = dead ? 5.0 : 0.0;
 
-			var dex = healer.Dex;
+            var dex = healer.Dex;
 
             double seconds;
 
-			if (healer == patient)
+            if (healer == patient)
             {
                 if (Core.AOS)
                 {
@@ -756,10 +756,10 @@ namespace Server.Items
             {
                 seconds = 5.0 + resDelay;
             }
-			
-			return TimeSpan.FromSeconds(seconds);
-		}
-	}
+
+            return TimeSpan.FromSeconds(seconds);
+        }
+    }
 
     public sealed class BandageTimerPacket : Packet
     {
